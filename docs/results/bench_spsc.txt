@@ -1,0 +1,11 @@
+SPSC queue benchmark (10 hardware threads)
+
+  throughput, batch  1:    38.3 M msgs/s (26.08 ns/msg, best of 3, 20000000 x uint64)
+  throughput, batch 16:   321.7 M msgs/s ( 3.11 ns/msg, best of 3, 20000000 x uint64)
+  throughput, batch 64:  1092.5 M msgs/s ( 0.92 ns/msg, best of 3, 20000000 x uint64)
+  round trip (ping-pong, ns): p50 125   p90 166   p99 167   p99.9 209   (one-way ~ p50/2 = 62)
+
+  order flow, 5000000 msgs (32-byte messages):
+    single thread                  30.4 M msgs/s
+    gateway -> SPSC -> matcher     31.1 M msgs/s  (matcher drains in bursts of up to 64)
+    identical executions: yes

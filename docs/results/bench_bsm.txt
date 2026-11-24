@@ -1,0 +1,8 @@
+Black-Scholes, 1,000,000 options (best of 5)
+  C batch kernel via ctypes       48.4 ms     48.4 ns/option
+  NumPy/SciPy vectorised          43.9 ms     43.9 ns/option
+  pure Python loop (scaled)    31261.7 ms   31261.7 ns/option
+
+American put, CRR tree with 2001 steps (best of 5)
+  C++ engine via ctypes          0.63 ms   price 13.2316985102
+  NumPy, vectorised per step    28.56 ms   price 13.2316985102   (45.2x slower)

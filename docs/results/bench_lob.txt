@@ -1,0 +1,11 @@
+Order book benchmark: 5000000 messages (add 72%, cancel 23%, replace 4%, market 1%)
+  ladder 65536 ticks, peak resting orders 20061, seed 42
+
+  engine                           msgs/s     ns/msg
+  qsl::lob::OrderBook               41.5M       24.1
+  std::map ReferenceBook             3.7M      269.6   (11.2x slower)
+
+  per-message latency in ns (each message timed alone; clock resolution 41 ns):
+    p50 42   p90 84   p99 125   p99.9 208   p99.99 250   max 3684000
+
+  executions identical across engines: yes (2437476 trades, 65050217 shares)

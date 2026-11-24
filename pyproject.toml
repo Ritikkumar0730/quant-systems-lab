@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "quant-systems-lab"
+version = "1.0.0"
+description = "Pricing, risk, rates, credit and market microstructure in Python, C and C++"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+dependencies = ["numpy>=1.24", "scipy>=1.10"]
+
+[project.optional-dependencies]
+test = ["pytest>=7.0", "QuantLib>=1.30"]
+
+[tool.setuptools.packages.find]
+where = ["python"]
+
+[tool.pytest.ini_options]
+testpaths = ["python/tests", "interview/python"]
+pythonpath = ["python", "interview/python"]
+addopts = "-q"
