@@ -4,7 +4,7 @@
 #   make test         run the C, C++, interview and Python test suites
 #   make sanitize     rebuild under AddressSanitizer + UBSan and run native tests
 #   make tsan         rebuild under ThreadSanitizer and run the C++ tests
-#   make bench        run the order-book and SPSC latency/throughput benchmarks
+#   make bench        run the order-book, SPSC and native-vs-NumPy pricing benchmarks
 #   make clean
 
 ifeq ($(origin CC),default)
@@ -133,9 +133,10 @@ sanitize:
 tsan:
 	$(MAKE) BUILD=build/tsan OPT="-O1 -g" SANITIZE="-fsanitize=thread" test-cpp
 
-bench: $(BIN)/bench_lob $(BIN)/bench_spsc
+bench: $(BIN)/bench_lob $(BIN)/bench_spsc $(LIB_C_SHARED) $(LIB_CPP_SHARED)
 	$(BIN)/bench_lob
 	$(BIN)/bench_spsc
+	$(PYTHON) scripts/bench_python.py
 
 clean:
 	rm -rf build

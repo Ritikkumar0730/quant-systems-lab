@@ -15,7 +15,7 @@ interview.
   pure-Python reference implementations).
 
 Measured consequence: for element-wise closed forms NumPy is as fast as the C kernel, because both are
-compiled loops. Native code earns its keep on sequential algorithms: a 2001-step American tree is 45x faster
+compiled loops. Native code earns its keep on sequential algorithms: a 2001-step American tree is about 43x faster
 in C++ than the best vectorised NumPy, and order matching cannot be vectorised at all.
 
 ## Matching engine (`cpp/include/qsl/lob`)

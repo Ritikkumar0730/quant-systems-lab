@@ -26,8 +26,8 @@ by the tests as a reference only.
 | Same flow through a `std::map`/`std::list` book | 3.7M msgs/s, **11x slower**, identical executions |
 | SPSC queue, one message per push / batches of 64 | 38M msgs/s / **1.1-1.6 billion msgs/s** |
 | Gateway thread → SPSC → matching thread | ~same throughput as single-threaded matching |
-| American option tree, 2001 steps: C++ vs NumPy | 0.63 ms vs 28.6 ms (**45x**), same price to 10 dp |
-| 1M Black-Scholes prices: C batch vs vectorised NumPy | 48 ns vs 44 ns per option: NumPy is already compiled code, so C only pays off on sequential algorithms |
+| American option tree, 2001 steps: C++ vs NumPy | 0.67 ms vs 29.0 ms (**43x**), same price to 10 dp |
+| 1M Black-Scholes prices: C batch vs vectorised NumPy | 43 ns vs 36 ns per option: NumPy is already compiled code, so C only pays off on sequential algorithms |
 
 Full outputs are in [docs/results](docs/results). Timer resolution on Apple Silicon is 41.7 ns, so latency
 percentiles are quantised to that step. Thread benchmarks vary roughly ±30% between runs because macOS does
@@ -109,7 +109,7 @@ make sanitize        # ASan + UBSan build of the native tests
 make tsan            # ThreadSanitizer build of the C++ tests
 ```
 ```bash
-make bench           # order book and SPSC benchmarks
+make bench           # order book, SPSC and native-vs-NumPy pricing benchmarks
 ```
 ```bash
 python3 scripts/mutation_test.py   # inject 6 bugs into the order book, expect 6/6 caught
