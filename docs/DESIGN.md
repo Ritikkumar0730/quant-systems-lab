@@ -87,5 +87,5 @@ all of them.
   tiny vega lose accuracy.
 - One order book holds one instrument and the engine is single-threaded by design (threading happens at
   the queue boundary). There is no self-trade prevention and no persistence.
-- The CI workflow in `.github/workflows/ci.yml` has not been run yet; local verification was on macOS
-  (Apple clang 21).
+- CI (`.github/workflows/ci.yml`) builds and tests on Ubuntu and macOS with clang, including the
+  sanitizer builds and the mutation test. Benchmarks in `docs/results` are from an Apple M4 laptop, not CI.
