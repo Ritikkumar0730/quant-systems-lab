@@ -115,7 +115,7 @@ make bench           # order book, SPSC and native-vs-NumPy pricing benchmarks
 python3 scripts/mutation_test.py   # inject 6 bugs into the order book, expect 6/6 caught
 ```
 
-Python example:
+Python example (after `make`, run `python3 -m pip install -e .` once so `import qsl` works from anywhere):
 
 ```python
 from qsl import pricing
@@ -132,7 +132,7 @@ cpp/          C++20 engines: include/qsl/{lob,concurrency,pricing}, src/c_api.cp
 python/qsl/   Python package: pricing, fixed_income, risk, credit, microstructure
 python/tests/ pytest suite (QuantLib, SciPy and textbook oracles)
 interview/    LeetCode-style problems in Python, C++ and C, plus probability puzzles
-scripts/      mutation testing
+scripts/      mutation testing, Python pricing benchmark
 docs/         design notes, glossary, benchmark outputs
 ```
 
