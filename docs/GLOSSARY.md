@@ -50,5 +50,3 @@
 | TWAP, VWAP, volume profile | Equal-time and volume-weighted schedules; the U-shaped intraday volume curve | [schedules.py](../python/qsl/execution/schedules.py) |
 | Participation rate, POV, square-root law | Share of market volume traded; impact ∝ sqrt(participation) | `cap_participation`, `simulate` |
 | VWAP slippage / tracking error | Fill price vs market VWAP | [execution_study.txt](results/execution_study.txt) |
-| Kelly criterion | Growth-optimal bet size | [puzzles.py](../interview/python/puzzles.py) |
-| Max drawdown | Largest peak-to-trough loss | [stock_trading.py](../interview/python/stock_trading.py) |

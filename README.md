@@ -85,7 +85,6 @@ not allow pinning threads to cores.
 | Merton model | Hull's worked example (V = 12.40, σV = 21.23%, PD = 12.7%) | printed digits |
 | Basel IRB | Risk weight 92.32% at PD 1%, LGD 45%, M 2.5; Vasicek quantile vs one-factor MC | 1e-4; 3% |
 | CDS | Credit triangle (exact at r = 0); bootstrap reprices every quote | 1e-5; 1e-12 |
-| Interview solutions (Py / C++ / C) | Exhaustive brute force on thousands of random inputs | identical |
 
 Extra checks: everything builds with `-Wall -Wextra -Wpedantic -Wconversion -Werror` (plus
 `-Wsign-conversion -Wold-style-cast` for C++), and the native suites pass under AddressSanitizer,
@@ -114,12 +113,11 @@ Findings from validation that are worth quoting in interviews:
 |---|---|
 | **Quant developer / HFT / low-latency C++** | ITCH feed handler: [`parser.hpp`](cpp/include/qsl/itch/parser.hpp), [`book.hpp`](cpp/include/qsl/itch/book.hpp), [`order_map.hpp`](cpp/include/qsl/itch/order_map.hpp), [`itch_replay.cpp`](cpp/tools/itch_replay.cpp); matching engine: [`order_book.hpp`](cpp/include/qsl/lob/order_book.hpp), [`hierarchical_bitset.hpp`](cpp/include/qsl/lob/hierarchical_bitset.hpp); [`spsc_queue.hpp`](cpp/include/qsl/concurrency/spsc_queue.hpp), [benchmarks](cpp/bench) |
 | **Quant researcher / strats (derivatives)** | [`binomial.hpp`](cpp/include/qsl/pricing/binomial.hpp), [`finite_difference.hpp`](cpp/include/qsl/pricing/finite_difference.hpp), [`heston.hpp`](cpp/include/qsl/pricing/heston.hpp), [`bsm.c`](c/src/bsm.c), [`mc.c`](c/src/mc.c) |
-| **Quant trader / market maker** | [`market_making.py`](python/qsl/microstructure/market_making.py) (Avellaneda-Stoikov), [order book](python/qsl/microstructure/lob.py), [puzzles](interview/python/puzzles.py) |
+| **Quant trader / market maker** | [`market_making.py`](python/qsl/microstructure/market_making.py) (Avellaneda-Stoikov), [order book](python/qsl/microstructure/lob.py) |
 | **Execution / algo trading** | [`almgren_chriss.py`](python/qsl/execution/almgren_chriss.py), [`schedules.py`](python/qsl/execution/schedules.py) (TWAP, VWAP, participation cap), [real-data study](scripts/execution_study.py) |
 | **Market risk (bank)** | [`var.py`](python/qsl/risk/var.py), [`backtest.py`](python/qsl/risk/backtest.py), [`volatility.py`](python/qsl/risk/volatility.py) |
 | **Credit risk / model validation** | [`merton.py`](python/qsl/credit/merton.py), [`irb.py`](python/qsl/credit/irb.py), [`cds.py`](python/qsl/credit/cds.py), and the validation approach in this README |
 | **Rates / fixed income** | [`bond.c`](c/src/bond.c), [`dates.c`](c/src/dates.c), [`curves.py`](python/qsl/fixed_income/curves.py) |
-| **Coding rounds** | [`interview/`](interview): LeetCode 121, 122, 123, 188, 146, 239, 295, 309, 480, 714, 901, 1801, 2034 and max drawdown, with brute-force tests |
 
 [docs/DESIGN.md](docs/DESIGN.md) explains the design decisions and trade-offs.
 [docs/GLOSSARY.md](docs/GLOSSARY.md) maps quant terms (DV01, vanna, ES, RWA...) to the code that computes them.
@@ -135,7 +133,7 @@ make                 # libraries, test binaries, benchmarks
 python3 -m pip install numpy scipy pytest QuantLib   # QuantLib is optional: its tests skip without it
 ```
 ```bash
-make test            # C, C++, interview (C++ and C) and Python suites
+make test            # C, C++ and Python suites
 ```
 ```bash
 make sanitize        # ASan + UBSan build of the native tests
@@ -185,7 +183,6 @@ cpp/          C++20 engines: include/qsl/{lob,itch,concurrency,pricing}, src/c_a
               tests/, bench/
 python/qsl/   Python package: pricing, fixed_income, risk, credit, microstructure (incl. ITCH codec), execution
 python/tests/ pytest suite (QuantLib, SciPy and textbook oracles)
-interview/    LeetCode-style problems in Python, C++ and C, plus probability puzzles
 scripts/      mutation testing, benchmarks, NASDAQ data fetch, real-data cross-checks, execution study
 docs/         design notes, glossary, data sources, results, derived real-data sample (docs/data)
 ```

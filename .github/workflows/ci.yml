@@ -23,7 +23,7 @@ jobs:
         run: python -m pip install numpy scipy pytest QuantLib
       - name: Build
         run: make -j4
-      - name: Tests (C, C++, interview, Python)
+      - name: Tests (C, C++, Python)
         run: make test PYTHON=python
       - name: AddressSanitizer + UBSan
         run: make sanitize

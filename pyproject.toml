@@ -18,6 +18,6 @@ test = ["pytest>=7.0", "QuantLib>=1.30"]
 where = ["python"]
 
 [tool.pytest.ini_options]
-testpaths = ["python/tests", "interview/python"]
-pythonpath = ["python", "interview/python"]
+testpaths = ["python/tests"]
+pythonpath = ["python"]
 addopts = "-q"

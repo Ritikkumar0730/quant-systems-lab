@@ -1,7 +1,7 @@
 # Quant Systems Lab build: plain GNU make with any C11/C++20 compiler (clang or gcc).
 #
 #   make              build libraries, test binaries and benchmarks (-O3)
-#   make test         run the C, C++, interview and Python test suites
+#   make test         run the C, C++ and Python test suites
 #   make sanitize     rebuild under AddressSanitizer + UBSan and run native tests
 #   make tsan         rebuild under ThreadSanitizer and run the C++ tests
 #   make bench        run the order-book, SPSC and native-vs-NumPy pricing benchmarks
@@ -44,21 +44,18 @@ LIB := $(BUILD)/lib
 C_OBJS         := $(patsubst %.c,$(OBJ)/%.o,$(wildcard c/src/*.c))
 CPP_API_OBJS   := $(patsubst %.cpp,$(OBJ)/%.o,$(wildcard cpp/src/*.cpp))
 CPP_TEST_OBJS  := $(patsubst %.cpp,$(OBJ)/%.o,$(wildcard cpp/tests/*.cpp))
-INTV_CPP_OBJS  := $(patsubst %.cpp,$(OBJ)/%.o,$(wildcard interview/cpp/*.cpp))
-INTV_C_OBJS    := $(patsubst %.c,$(OBJ)/%.o,$(wildcard interview/c/*.c))
 
 LIB_C_STATIC   := $(LIB)/libqsl.a
 LIB_C_SHARED   := $(LIB)/libqsl.$(SHARED_EXT)
 LIB_CPP_SHARED := $(LIB)/libqslcpp.$(SHARED_EXT)
 
-.PHONY: all c cpp interview test test-native test-c test-cpp test-interview test-py \
+.PHONY: all c cpp test test-native test-c test-cpp test-py \
         sanitize tsan bench clean help
 
-all: c cpp interview
+all: c cpp
 
 c: $(LIB_C_SHARED) $(BIN)/test_c
 cpp: $(LIB_CPP_SHARED) $(BIN)/test_cpp $(BIN)/bench_lob $(BIN)/bench_spsc $(BIN)/itch_replay
-interview: $(BIN)/test_interview_cpp $(BIN)/test_interview_c
 
 # ------------------------------------------------------------------ objects
 $(OBJ)/%.o: %.c
@@ -105,28 +102,16 @@ $(BIN)/itch_replay: $(OBJ)/cpp/tools/itch_replay.o
 	@mkdir -p $(@D)
 	$(CXX) $(LDFLAGS) $^ -o $@ $(LDLIBS)
 
-$(BIN)/test_interview_cpp: $(INTV_CPP_OBJS)
-	@mkdir -p $(@D)
-	$(CXX) $(LDFLAGS) $^ -o $@ $(LDLIBS)
-
-$(BIN)/test_interview_c: $(INTV_C_OBJS)
-	@mkdir -p $(@D)
-	$(CC) $(LDFLAGS) $^ -o $@ $(LDLIBS)
-
 # -------------------------------------------------------------------- tests
 test: test-native test-py
 
-test-native: test-c test-cpp test-interview
+test-native: test-c test-cpp
 
 test-c: $(BIN)/test_c
 	$(BIN)/test_c
 
 test-cpp: $(BIN)/test_cpp
 	$(BIN)/test_cpp
-
-test-interview: $(BIN)/test_interview_cpp $(BIN)/test_interview_c
-	$(BIN)/test_interview_cpp
-	$(BIN)/test_interview_c
 
 test-py: $(LIB_C_SHARED) $(LIB_CPP_SHARED) $(BIN)/itch_replay
 	$(PYTHON) -m pytest
