@@ -1,0 +1,4 @@
+In-memory replay of the first 1000 MB (31603673 messages), best of 3
+  parse + decode every field         193.2 M msgs/s    5.18 ns/msg    6112 MB/s
+  parse + full book rebuild           19.7 M msgs/s   50.71 ns/msg     624 MB/s
+  (decode checksum b44db8de6634be4f)

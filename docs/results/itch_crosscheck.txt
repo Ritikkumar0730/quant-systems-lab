@@ -1,0 +1,46 @@
+C++ parser vs independent Python decoder, first 20,000,000 frames of 12302019.NASDAQ_ITCH50.gz
+
+field checksum                            C++                 Python
+ts                       10235347884288323527   10235347884288323527  ok
+locate                            91497696443            91497696443  ok
+add_ref                        96195923755907         96195923755907  ok
+add_shares                         4259706310             4259706310  ok
+add_price                      38480505102847         38480505102847  ok
+add_buys                              4367472                4367472  ok
+exec_shares                          51970366               51970366  ok
+exec_match                       117832891620           117832891620  ok
+execpx_shares                         1169674                1169674  ok
+execpx_price                       3378790703             3378790703  ok
+execpx_printable                         4774                   4774  ok
+cancel_shares                       190133942              190133942  ok
+delete_ref                     81897379716179         81897379716179  ok
+replace_new_ref                21861634246900         21861634246900  ok
+replace_shares                      614969012              614969012  ok
+replace_price                   1680870161671          1680870161671  ok
+trade_shares                         11125043               11125043  ok
+trade_price                      106512136207           106512136207  ok
+cross_shares                         19896150               19896150  ok
+cross_price                        1118892839             1118892839  ok
+directory_round_lot                    889601                 889601  ok
+
+type            C++       Python
+A           8037873      8037873  ok
+C              5775         5775  ok
+D           6999861      6999861  ok
+E            292834       292834  ok
+F            859514       859514  ok
+H              8902         8902  ok
+I           1073085      1073085  ok
+K                 3            3  ok
+L            215089       215089  ok
+P             73680        73680  ok
+Q              8906         8906  ok
+R              8906         8906  ok
+S                 3            3  ok
+U           1741509      1741509  ok
+V                 1            1  ok
+X            665138       665138  ok
+Y              8921         8921  ok
+
+result: all checksums and counts agree
+time: C++ 1.9 s (including gunzip), Python 19.1 s

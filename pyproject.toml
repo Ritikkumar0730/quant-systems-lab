@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "quant-systems-lab"
-version = "1.0.0"
-description = "Pricing, risk, rates, credit and market microstructure in Python, C and C++"
+version = "1.1.0"
+description = "Pricing, risk, rates, credit, execution and market microstructure in Python, C and C++"
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }

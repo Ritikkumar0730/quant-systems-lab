@@ -57,7 +57,7 @@ LIB_CPP_SHARED := $(LIB)/libqslcpp.$(SHARED_EXT)
 all: c cpp interview
 
 c: $(LIB_C_SHARED) $(BIN)/test_c
-cpp: $(LIB_CPP_SHARED) $(BIN)/test_cpp $(BIN)/bench_lob $(BIN)/bench_spsc
+cpp: $(LIB_CPP_SHARED) $(BIN)/test_cpp $(BIN)/bench_lob $(BIN)/bench_spsc $(BIN)/itch_replay
 interview: $(BIN)/test_interview_cpp $(BIN)/test_interview_c
 
 # ------------------------------------------------------------------ objects
@@ -100,6 +100,11 @@ $(BIN)/bench_spsc: $(OBJ)/cpp/bench/bench_spsc.o
 	@mkdir -p $(@D)
 	$(CXX) $(LDFLAGS) $^ -o $@ $(LDLIBS) $(THREADS)
 
+# NASDAQ ITCH 5.0 replay: gzip -dc FILE.gz | build/bin/itch_replay -
+$(BIN)/itch_replay: $(OBJ)/cpp/tools/itch_replay.o
+	@mkdir -p $(@D)
+	$(CXX) $(LDFLAGS) $^ -o $@ $(LDLIBS)
+
 $(BIN)/test_interview_cpp: $(INTV_CPP_OBJS)
 	@mkdir -p $(@D)
 	$(CXX) $(LDFLAGS) $^ -o $@ $(LDLIBS)
@@ -123,7 +128,7 @@ test-interview: $(BIN)/test_interview_cpp $(BIN)/test_interview_c
 	$(BIN)/test_interview_cpp
 	$(BIN)/test_interview_c
 
-test-py: $(LIB_C_SHARED) $(LIB_CPP_SHARED)
+test-py: $(LIB_C_SHARED) $(LIB_CPP_SHARED) $(BIN)/itch_replay
 	$(PYTHON) -m pytest
 
 sanitize:

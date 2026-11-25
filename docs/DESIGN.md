@@ -33,8 +33,64 @@ in C++ than the best vectorised NumPy, and order matching cannot be vectorised a
 **Testing approach.** `ReferenceBook` re-implements the same contract in the most obvious way possible
 (`std::map` and `std::list`). Random order flow drives both books and compares every result, every trade and
 the full depth. The run also records coverage, so the test fails if the random flow stops reaching any
-rejection path. `scripts/mutation_test.py` then injects six realistic bugs and checks that the suite catches
-all of them.
+rejection path. `scripts/mutation_test.py` then injects six realistic bugs into the engine (and seven into
+the ITCH handler) and checks that the suite catches all of them.
+
+## ITCH 5.0 feed handler (`cpp/include/qsl/itch`)
+
+ITCH is a market-by-order feed: NASDAQ reports every add, execution, cancel, delete and replace by order
+reference, after it has done the matching. Rebuilding the book is bookkeeping, not matching, so this is a
+separate component from the matching engine. It shares the same habits: integer prices, no allocation in
+steady state, and a naive reference implementation for differential tests.
+
+| Decision | Reason |
+|---|---|
+| Zero-copy parser; each message decoded into a small struct on the stack | No allocation and no virtual calls. Decoding every field costs 5 ns/msg (193M msgs/s) |
+| Optional callbacks through C++20 `requires` expressions | A handler implements only what it needs. Missing callbacks compile away |
+| Frame length checked against the spec for every type; bad frames counted and skipped | The stream stays in sync after corruption, and nothing is silently misread |
+| Order store indexed by the order reference itself, data inline in the slot | NASDAQ references mostly increase and most updates hit young orders (median age: ~430 adds), so recent orders sit in a small, cache-resident region |
+| Price levels in a sorted vector per side, best at the back, searched from the top | Two thirds of real updates land in the top four levels |
+| Integrity counters instead of asserts (unknown order, overfill, locate mismatch...) | Replaying a real day doubles as a check of the parser offsets: one wrong offset makes these explode |
+
+**Optimisation log (same 1 GB of real data, Apple M4, in memory):**
+
+| Step | ns/msg | What the profiler showed |
+|---|---|---|
+| Hashed `OrderIndex` (SplitMix) + separate order pool | 85 | Two DRAM misses per message: index slot, then pool slot |
+| Identity-indexed map, order data inline | 69 | Price-level binary search dominates |
+| Scan levels from the top first; 16-byte level entries | 58 | First touch of each stock's ladder |
+| Two-stage software prefetch, 16 and 8 frames ahead | 54 | Remaining time is deep-book searches |
+| Load factor capped at 1/4 (was 1/2) | 50 | With the table ~45% full the same input took 143 ns/msg: references arrive in dense runs, which form long probe clusters under identity indexing |
+
+The full day runs at 18.3M msgs/s (25 s wall time, including gunzip in a separate process).
+
+**Validation.** The C++ tests check:
+- every message type against bytes written field by field from the spec;
+- framing across random chunk splits;
+- the book against a naive `std::map` reference after every message, including deliberately invalid events;
+- the order map against `std::unordered_map`, with keys chosen so that every one collides.
+
+On real data:
+- a separate Python decoder (struct layouts written from the spec) agrees on every field checksum over 20M
+  messages;
+- the full day replays with zero integrity errors and zero orders left at the close;
+- the rebuilt closing-cross prices equal the official closes (52 of 52 symbols that still have an official
+  close available).
+
+## Execution (`python/qsl/execution`)
+
+- **Almgren-Chriss** uses the discrete-time solution, written with exponentials so that large κT cannot
+  overflow. It is validated against a direct minimisation of the same objective: setting the gradient to
+  zero gives a tridiagonal system. A Monte Carlo of the model's price dynamics checks E[IS] and Var[IS].
+- **Schedules** use largest-remainder rounding, so child orders are integers that always sum to the parent
+  size.
+- **The simulator** fills each child at its minute's VWAP plus square-root impact in participation. A
+  participation cap carries any excess forward, as a real VWAP/POV algorithm does.
+- **On real data** (`scripts/execution_study.py`), each stock's VWAP forecast is the average profile of the
+  other 99 stocks, so the stock's own volume is never used to schedule it:
+  - For ordinary stocks it beats TWAP on median and tail tracking error.
+  - On news days (an intraday range above 10%) no generic profile can track VWAP. The study reports that
+    split rather than averaging it away.
 
 ## SPSC queue (`cpp/include/qsl/concurrency/spsc_queue.hpp`)
 
@@ -87,5 +143,11 @@ all of them.
   tiny vega lose accuracy.
 - One order book holds one instrument and the engine is single-threaded by design (threading happens at
   the queue boundary). There is no self-trade prevention and no persistence.
+- The ITCH handler rebuilds displayed NASDAQ orders only. Hidden orders appear only as 'P' trade prints,
+  so the book is the displayed book, as on any ITCH consumer. It reads files; there is no MoldUDP64/SoupBinTCP
+  network layer.
+- The execution study uses one day of data, so the VWAP forecast is cross-sectional (other stocks), not
+  each stock's own history; the impact coefficient is illustrative, not calibrated.
 - CI (`.github/workflows/ci.yml`) builds and tests on Ubuntu and macOS with clang, including the
-  sanitizer builds and the mutation test. Benchmarks in `docs/results` are from an Apple M4 laptop, not CI.
+  sanitizer builds and the mutation test. It does not download the 3.5 GB NASDAQ file; the ITCH code is
+  tested in CI on generated feeds, and the real-data results in `docs/results` are from an Apple M4 laptop.

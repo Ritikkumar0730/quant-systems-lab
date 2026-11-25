@@ -34,8 +34,21 @@
 | GTC, IOC, FOK, post-only | Time-in-force instructions | `TimeInForce` |
 | Market-by-price depth | Aggregated quantity per level | `OrderBook::depth` |
 | Tick-to-trade pipeline, feed handler | Gateway thread → queue → matching thread | [bench_spsc.cpp](../cpp/bench/bench_spsc.cpp) |
+| Market data feed, ITCH 5.0 | NASDAQ's binary market-by-order protocol: every add, execute, cancel, delete and replace | [parser.hpp](../cpp/include/qsl/itch/parser.hpp), [itch.py](../python/qsl/microstructure/itch.py) |
+| Market-by-order (L3) vs market-by-price (L2) | Individual orders vs aggregated size per price | [book.hpp](../cpp/include/qsl/itch/book.hpp) |
+| Order reference number, stock locate | ITCH's per-day order id and per-day symbol index | [messages.hpp](../cpp/include/qsl/itch/messages.hpp) |
+| Book building / reconstruction | Rebuilding every stock's book from the feed | `BookBuilder` in [book.hpp](../cpp/include/qsl/itch/book.hpp) |
+| Opening / closing cross, NOII | NASDAQ's auctions and their imbalance messages; the closing cross sets the official close | [itch_closing_cross_vs_official.txt](results/itch_closing_cross_vs_official.txt) |
+| Locked / crossed book | Best bid equal to or above best ask | `CrossedCounts` in [book.hpp](../cpp/include/qsl/itch/book.hpp) |
+| Software prefetching | Loading memory a few messages ahead to hide DRAM latency | `prefetch` in [book.hpp](../cpp/include/qsl/itch/book.hpp) |
 | False sharing, cache line | Cross-core contention on one line | [spsc_queue.hpp](../cpp/include/qsl/concurrency/spsc_queue.hpp) |
 | Latency percentiles (p50 / p99 / p99.9) | Tail latency | [bench_order_book.cpp](../cpp/bench/bench_order_book.cpp) |
 | Reservation price, inventory risk | Avellaneda-Stoikov market making | [market_making.py](../python/qsl/microstructure/market_making.py) |
+| Implementation shortfall, arrival price | Execution cost vs the price when the order arrived | [almgren_chriss.py](../python/qsl/execution/almgren_chriss.py), `simulate` |
+| Almgren-Chriss, efficient frontier, urgency κ | Optimal liquidation trading expected cost against variance | [almgren_chriss.py](../python/qsl/execution/almgren_chriss.py) |
+| Permanent vs temporary impact | Lasting vs transient price move caused by trading | `ACParams.gamma`, `ACParams.eta` |
+| TWAP, VWAP, volume profile | Equal-time and volume-weighted schedules; the U-shaped intraday volume curve | [schedules.py](../python/qsl/execution/schedules.py) |
+| Participation rate, POV, square-root law | Share of market volume traded; impact ∝ sqrt(participation) | `cap_participation`, `simulate` |
+| VWAP slippage / tracking error | Fill price vs market VWAP | [execution_study.txt](results/execution_study.txt) |
 | Kelly criterion | Growth-optimal bet size | [puzzles.py](../interview/python/puzzles.py) |
 | Max drawdown | Largest peak-to-trough loss | [stock_trading.py](../interview/python/stock_trading.py) |

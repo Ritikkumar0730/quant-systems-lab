@@ -31,3 +31,5 @@ jobs:
         run: make tsan
       - name: Mutation test
         run: python scripts/mutation_test.py
+      - name: Execution study on the committed real NASDAQ minute bars
+        run: python scripts/execution_study.py

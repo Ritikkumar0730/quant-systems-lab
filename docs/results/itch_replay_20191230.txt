@@ -1,0 +1,33 @@
+NASDAQ TotalView-ITCH 5.0, 30 Dec 2019 (12302019.NASDAQ_ITCH50.gz from emi.nasdaq.com, 3,524,013,057 bytes)
+gzip -dc 12302019.NASDAQ_ITCH50.gz | build/bin/itch_replay -      (Apple M4, single thread)
+
+ITCH 5.0 replay
+  bytes                      8251407909
+  messages                    268744780
+  unknown type / bad length / trailing bytes  0 / 0 / 0
+  stocks listed                    8906
+  messages by type     
+    A    117145568    C        99917    D    114360997    E      5722824
+    F      1485888    H         8966    I      4024315    J           34
+    K            3    L       215161    P      1218602    Q        17836
+    R         8906    S            6    U     21639067    V            1
+    X      2787676    Y         9013
+Session (system events): start 03:04:32.057543  open 09:30:00.000075  close 16:00:00.000071  end 20:05:00.000040
+Book integrity (all should be 0)
+  unknown order 0  duplicate 0  overfill 0  locate mismatch 0  level mismatch 0
+Book state
+  peak live orders 1924078, live at end 0 (order map 8388608 slots, grew 1 times)
+  updates leaving a crossed book: 642 while trading in regular hours, 8007 while halted/paused/quote-only, 0 outside regular hours
+  printed executions 7038481 (971016019 shares), broken trades 0
+Throughput
+  processing 14.70 s (18.3 M msgs/s, 54.7 ns/msg); wall 25.00 s including read/decompress
+
+Notes
+  * 0 integrity errors over 268.7M messages and 0 live orders at end of day: every add, execution,
+    cancel, delete and replace was applied to a known order without overfilling it.
+  * Crossed books while trading in regular hours (642 updates) occur in 10 symbols only; 631 of them
+    immediately follow 'C' (order executed with price) messages, i.e. auction executions reported fill
+    by fill, and two of the symbols (ZJZZT, ZWZZT) are NASDAQ test issues. The 8,007 crossed updates
+    while halted/paused are expected: orders queue up before a reopening cross.
+  * Processing time excludes decompression, which runs in the gzip process.
+  * Closing-cross prices are checked against official closes in itch_closing_cross_vs_official.txt.

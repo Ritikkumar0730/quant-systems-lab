@@ -1,0 +1,36 @@
+TWAP vs VWAP on real NASDAQ minute bars: 100 most traded symbols, 30 Dec 2019 (ITCH replay)
+
+Average intraday profile (each stock weighted equally):
+  first 30 min  16.1%   middle 330 min  68.7%   last 30 min  15.2%
+  busiest minute 15:59 is 10.1x the average minute; quietest is 0.33x
+
+Order = a fraction of the stock's NASDAQ regular-hours volume; participation capped at 25% of each minute.
+ order     schedule | |slippage| vs VWAP, no impact | cost vs VWAP, sqrt impact | unfilled
+                    |      median     mean      p90 |      median        mean |     mean
+    1%         TWAP |     8.27 bp 83.17 bp  51.4 bp |    19.82 bp    28.92 bp |    0.00%
+    1%   VWAP (LOO) |     6.66 bp 83.23 bp 123.0 bp |    15.42 bp    12.13 bp |    0.03%
+    1%  VWAP oracle |     0.01 bp  0.03 bp   0.1 bp |    10.00 bp    10.00 bp |    0.00%
+
+    5%         TWAP |     8.12 bp 81.73 bp  53.3 bp |    33.71 bp    42.81 bp |    0.02%
+    5%   VWAP (LOO) |     7.33 bp 83.60 bp 123.6 bp |    28.68 bp    25.08 bp |    0.34%
+    5%  VWAP oracle |     0.00 bp  0.01 bp   0.0 bp |    22.36 bp    22.36 bp |    0.00%
+
+   20%         TWAP |     5.84 bp 28.19 bp  79.0 bp |    47.35 bp    48.39 bp |    7.28%
+   20%   VWAP (LOO) |     4.95 bp 31.42 bp  93.3 bp |    47.01 bp    41.74 bp |    4.29%
+   20%  VWAP oracle |     0.00 bp  0.00 bp   0.0 bp |    44.72 bp    44.72 bp |    0.00%
+
+No-impact tracking error at 1% of volume, split by the stock's intraday high/low range:
+                         stocks  TWAP median  VWAP median  TWAP p90  VWAP p90  VWAP better
+range <= 10%                 82      6.47 bp      4.83 bp   30.3 bp   22.9 bp    48 of 82
+range > 10% (news days)      18     38.65 bp    146.97 bp  825.9 bp  648.2 bp     4 of 18
+
+Reading the results:
+  * Tracking error (no impact): for ordinary stocks a volume profile borrowed from other stocks
+    beats TWAP on both the median and the tail. On news days (18 of the 100 symbols moved more than
+    10% intraday) neither schedule can track VWAP and the generic profile can be worse, which is why
+    production VWAP models forecast each stock's profile from its own history and adapt intraday.
+    One day of data cannot do that, so these VWAP numbers are a pessimistic estimate.
+  * Impact cost: VWAP is clearly cheaper. TWAP trades the same amount in quiet midday minutes,
+    so its participation, and square-root impact, peak where liquidity is thinnest. Under the
+    25% cap, large orders (20% of volume) also go unfilled more often with TWAP than with VWAP.
+  * The oracle row (the stock's own realised profile) is the floor for a perfect forecast.

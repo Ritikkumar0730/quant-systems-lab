@@ -1,24 +1,43 @@
 # Quant Systems Lab
 
-Pricing, risk, rates, credit and market-microstructure infrastructure in **C, C++ and Python**, where every
-number is checked against something independent: QuantLib, textbook worked examples, closed-form
-identities, brute-force oracles or simulation.
+Pricing, risk, rates, credit, execution and market-microstructure infrastructure in **C, C++ and Python**,
+where every number is checked against something independent: QuantLib, textbook worked examples,
+closed-form identities, brute-force oracles, simulation, or **a full day of real NASDAQ market data**.
 
 ```
             Python 3.10+   research & risk layer
-   pricing.py · fixed_income · risk · credit · microstructure
+   pricing.py · fixed_income · risk · credit · microstructure · execution
         |  ctypes                              |  ctypes
         v                                      v
    C11  libqsl                          C++20  libqslcpp
    normal dist · BSM + Greeks · IV      limit order book / matching engine
-   xoshiro256** · Monte Carlo (CV)      lock-free SPSC queue
-   dates · day counts · bond math       binomial (CRR, Leisen-Reimer) · Crank-Nicolson · Heston
+   xoshiro256** · Monte Carlo (CV)      NASDAQ ITCH 5.0 feed handler + book rebuild
+   dates · day counts · bond math       lock-free SPSC queue
+                                        binomial (CRR, Leisen-Reimer) · Crank-Nicolson · Heston
 ```
 
 No third-party code is vendored. The only runtime dependencies are NumPy and SciPy, and QuantLib is used
 by the tests as a reference only.
 
-## Headline results (Apple M4, `make bench`)
+## Headline results (Apple M4)
+
+**Real data: one full NASDAQ trading day (30 Dec 2019, 268.7M ITCH messages, 8,906 symbols)**
+
+| What | Result |
+|---|---|
+| Full order-book rebuild of every NASDAQ stock, one thread | **18.3M msgs/s (55 ns/msg)**; the whole day in 25 s including gunzip |
+| Parse + decode every field | 193M msgs/s (5.2 ns/msg) |
+| Book integrity over the whole day | **0** unknown orders, overfills or mismatches; **0** orders left on the book at the close |
+| Rebuilt closing-cross prices vs official closes | **52 / 52** symbols agree, to the source's precision (cents) |
+| C++ parser vs an independent Python decoder (20M real messages) | all 21 field checksums and 17 per-type counts identical |
+| VWAP vs TWAP on real minute bars, 100 most traded symbols | VWAP cuts median tracking error 25% (6.5 → 4.8 bp) on ordinary stocks and impact cost by more than half for a 1% order (29 → 12 bp mean) |
+
+Details: [itch_replay_20191230.txt](docs/results/itch_replay_20191230.txt),
+[closing crosses](docs/results/itch_closing_cross_vs_official.txt),
+[cross-check](docs/results/itch_crosscheck.txt), [execution study](docs/results/execution_study.txt).
+Where the data comes from, and other free sources: [docs/DATA.md](docs/DATA.md).
+
+**Engines (`make bench`)**
 
 | What | Result |
 |---|---|
@@ -51,7 +70,13 @@ not allow pinning threads to cores.
 | ACT/360, ACT/365F, 30/360, 30E/360, ACT/ACT ISDA | Python `datetime`, QuantLib day counters | ≤ 1e-14 |
 | Yield-curve bootstrap | Hull Table 4.4 zero rates; exact repricing of every input | 5e-6; 1e-13 |
 | Order book | Naive C++ reference book (720k random ops) and a pure-Python book via ctypes (60k ops) | identical trades and depth |
-| Order book test strength | 6 injected bugs (`scripts/mutation_test.py`) | **6/6 caught** |
+| ITCH 5.0 parser | Every type vs bytes written field by field from the spec; an independent Python decoder on generated feeds and on 20M real messages | every field identical |
+| ITCH book rebuild | Naive `std::map` book after every message (incl. invalid events); a full real NASDAQ day | identical depth; 0 integrity errors in 268.7M messages |
+| NASDAQ closing cross | Official closes (Yahoo Finance) for the 80 largest crosses | 52/52 available agree (within the source's half-cent rounding); 27 delisted/renamed and 1 reused ticker reported, not hidden |
+| Almgren-Chriss trajectory | Direct numerical minimisation of E + λVar (tridiagonal solve) | ≤ 1e-9 |
+| Almgren-Chriss E[IS], Var[IS] | Monte Carlo of the model's price dynamics | mean within 4 SE; variance within 1% |
+| TWAP / VWAP simulator | Exact identities: perfect forecast hits VWAP, TWAP hits the time average, impact formula | 1e-9 |
+| Test strength | 13 injected bugs: 6 in the matching engine, 7 in the ITCH handler (`scripts/mutation_test.py`) | **13/13 caught** |
 | SPSC queue | 2-thread stress tests under ThreadSanitizer | no data races |
 | Historical VaR / ES | Brute-force order statistic and integral of the quantile function | exact |
 | Basel traffic light | 1996 Basel table of cumulative probabilities and plus factors | 5e-5 |
@@ -66,21 +91,31 @@ Extra checks: everything builds with `-Wall -Wextra -Wpedantic -Wconversion -Wer
 `-Wsign-conversion -Wold-style-cast` for C++), and the native suites pass under AddressSanitizer,
 UndefinedBehaviorSanitizer and ThreadSanitizer.
 
-Two findings from validation are worth quoting in interviews:
+Findings from validation that are worth quoting in interviews:
 1. **Christoffersen's independence test over-rejects on short samples.** On 1,000 days of truly
    independent exceptions a 5% test rejects about 9% of the time; it only approaches 5% by around 5,000
    days. The test suite asserts both facts.
 2. **Crank-Nicolson only converges at second order once the payoff is cell-averaged.** Without it, the
    strike falling between grid nodes made the error oscillate, and it got *worse* going from a 400 to an
    800 grid. With averaging it falls exactly 4x per grid doubling, now locked in by a test.
+3. **The feed handler's speed is a memory-layout problem, not a parsing problem.** Decoding costs 5 ns per
+   message, but rebuilding the book started at 85 ns because every lookup missed cache. Indexing orders
+   by their (mostly increasing) NASDAQ reference, scanning price levels from the top and prefetching
+   took it to 50 ns. Letting the order table fill to ~45% made the same data 3x slower again: references
+   arrive in dense runs that form long probe clusters. The steps are in [DESIGN.md](docs/DESIGN.md).
+4. **Real data does not look like textbook data.** INTC, one of the most liquid stocks, had no NASDAQ
+   execution at all from 12:11:52 to 12:13:30, although its book updated 804 times in the 12:12 minute alone.
+   Crossed books while trading appeared in only 10 symbols, 631 of 642 times right after auction fills. And a generic VWAP profile fails on news days (18 of the top 100
+   symbols moved more than 10% intraday), which the execution study reports separately.
 
 ## Map by role
 
 | If you are interviewing for... | Look at |
 |---|---|
-| **Quant developer / low-latency C++** | [`order_book.hpp`](cpp/include/qsl/lob/order_book.hpp), [`hierarchical_bitset.hpp`](cpp/include/qsl/lob/hierarchical_bitset.hpp), [`order_index.hpp`](cpp/include/qsl/lob/order_index.hpp), [`spsc_queue.hpp`](cpp/include/qsl/concurrency/spsc_queue.hpp), [benchmarks](cpp/bench) |
+| **Quant developer / HFT / low-latency C++** | ITCH feed handler: [`parser.hpp`](cpp/include/qsl/itch/parser.hpp), [`book.hpp`](cpp/include/qsl/itch/book.hpp), [`order_map.hpp`](cpp/include/qsl/itch/order_map.hpp), [`itch_replay.cpp`](cpp/tools/itch_replay.cpp); matching engine: [`order_book.hpp`](cpp/include/qsl/lob/order_book.hpp), [`hierarchical_bitset.hpp`](cpp/include/qsl/lob/hierarchical_bitset.hpp); [`spsc_queue.hpp`](cpp/include/qsl/concurrency/spsc_queue.hpp), [benchmarks](cpp/bench) |
 | **Quant researcher / strats (derivatives)** | [`binomial.hpp`](cpp/include/qsl/pricing/binomial.hpp), [`finite_difference.hpp`](cpp/include/qsl/pricing/finite_difference.hpp), [`heston.hpp`](cpp/include/qsl/pricing/heston.hpp), [`bsm.c`](c/src/bsm.c), [`mc.c`](c/src/mc.c) |
 | **Quant trader / market maker** | [`market_making.py`](python/qsl/microstructure/market_making.py) (Avellaneda-Stoikov), [order book](python/qsl/microstructure/lob.py), [puzzles](interview/python/puzzles.py) |
+| **Execution / algo trading** | [`almgren_chriss.py`](python/qsl/execution/almgren_chriss.py), [`schedules.py`](python/qsl/execution/schedules.py) (TWAP, VWAP, participation cap), [real-data study](scripts/execution_study.py) |
 | **Market risk (bank)** | [`var.py`](python/qsl/risk/var.py), [`backtest.py`](python/qsl/risk/backtest.py), [`volatility.py`](python/qsl/risk/volatility.py) |
 | **Credit risk / model validation** | [`merton.py`](python/qsl/credit/merton.py), [`irb.py`](python/qsl/credit/irb.py), [`cds.py`](python/qsl/credit/cds.py), and the validation approach in this README |
 | **Rates / fixed income** | [`bond.c`](c/src/bond.c), [`dates.c`](c/src/dates.c), [`curves.py`](python/qsl/fixed_income/curves.py) |
@@ -112,7 +147,25 @@ make tsan            # ThreadSanitizer build of the C++ tests
 make bench           # order book, SPSC and native-vs-NumPy pricing benchmarks
 ```
 ```bash
-python3 scripts/mutation_test.py   # inject 6 bugs into the order book, expect 6/6 caught
+python3 scripts/mutation_test.py   # inject 13 bugs (order book + ITCH), expect 13/13 caught
+```
+
+Real NASDAQ data (3.5 GB download, optional; see [docs/DATA.md](docs/DATA.md)):
+
+```bash
+scripts/fetch_nasdaq_itch.sh
+```
+```bash
+gzip -dc data/12302019.NASDAQ_ITCH50.gz | build/bin/itch_replay - --crosses data/nasdaq_20191230_crosses.csv
+```
+```bash
+python3 scripts/itch_crosscheck.py         # C++ vs independent Python decoder on 20M real messages
+```
+```bash
+python3 scripts/itch_validate_closes.py    # rebuilt closing crosses vs official closes (needs network)
+```
+```bash
+python3 scripts/execution_study.py         # TWAP vs VWAP on the committed real minute bars
 ```
 
 Python example (after `make`, run `python3 -m pip install -e .` once so `import qsl` works from anywhere):
@@ -128,12 +181,13 @@ pricing.binomial("put", 100, 105, 1.0, 0.05, 0.02, 0.3, steps=801, american=True
 
 ```
 c/            C11 kernels: include/qsl/qsl.h, src/, tests/
-cpp/          C++20 engines: include/qsl/{lob,concurrency,pricing}, src/c_api.cpp, tests/, bench/
-python/qsl/   Python package: pricing, fixed_income, risk, credit, microstructure
+cpp/          C++20 engines: include/qsl/{lob,itch,concurrency,pricing}, src/c_api.cpp, tools/itch_replay.cpp,
+              tests/, bench/
+python/qsl/   Python package: pricing, fixed_income, risk, credit, microstructure (incl. ITCH codec), execution
 python/tests/ pytest suite (QuantLib, SciPy and textbook oracles)
 interview/    LeetCode-style problems in Python, C++ and C, plus probability puzzles
-scripts/      mutation testing, Python pricing benchmark
-docs/         design notes, glossary, benchmark outputs
+scripts/      mutation testing, benchmarks, NASDAQ data fetch, real-data cross-checks, execution study
+docs/         design notes, glossary, data sources, results, derived real-data sample (docs/data)
 ```
 
 ## License

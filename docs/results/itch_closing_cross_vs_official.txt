@@ -1,0 +1,88 @@
+NASDAQ Closing Cross (rebuilt from the 30 Dec 2019 ITCH file) vs official close (Yahoo Finance,
+split-adjustment undone), for the 80 largest closing crosses by shares.
+
+symbol    ITCH cross    official     diff  shares in cross
+MSFT        157.5900    157.5900   0.0000     2,279,904
+CMCSA        45.1800     45.1800   0.0000     1,892,876
+SIRI          7.0900      7.0900   0.0000     1,864,298
+ZNGA          6.1400         n/a           (HTTPError: delisted or renamed since 2019)
+INTC         59.6200     59.6200   0.0000     1,592,481
+CSCO         47.5900     47.5900   0.0000     1,487,158
+AAPL        291.5200    291.5200   0.0000     1,335,177
+FB          204.4100         n/a           (no bar for that day: delisted or renamed since 2019)
+MRVL         26.4100     26.4100   0.0000     1,071,451
+DBX          17.6000     17.6000   0.0000       989,304
+FOLD          9.5300         n/a           (KeyError: delisted or renamed since 2019)
+FEYE         16.5800         n/a           (HTTPError: delisted or renamed since 2019)
+VIAC         41.4800         n/a           (HTTPError: delisted or renamed since 2019)
+PEP         136.8100    136.8100   0.0000       702,359
+HBAN         15.0400     15.0400   0.0000       699,816
+TLT         136.8200    136.8200   0.0000       651,204
+SBUX         87.4400     87.4400   0.0000       650,280
+EXC          45.3800     45.3800   0.0000       604,977
+GLPI         42.8700     42.8700   0.0000       597,418
+AMD          45.5200     45.5200   0.0000       586,079
+GILD         64.9300     64.9300   0.0000       583,717
+MU           53.2100     53.2100   0.0000       572,765
+TRUE          4.7000         n/a           (HTTPError: delisted or renamed since 2019)
+NYMT          6.2200         n/a           (HTTPError: delisted or renamed since 2019)
+CZR          13.5400     skipped           ticker reused: Caesars Entertainment Corp in 2019; Eldorado Resorts took the ticker after the July 2020 merger
+MDLZ         55.0000     55.0000   0.0000       504,378
+SPWR          7.8650         n/a           (no bar for that day: delisted or renamed since 2019)
+QCOM         88.4300     88.4300   0.0000       456,273
+PYPL        107.9700    107.9700   0.0000       447,331
+EBAY         35.7950     35.8000  -0.0050       432,215
+WBA          58.9100         n/a           (HTTPError: delisted or renamed since 2019)
+TMUS         78.0800     78.0800   0.0000       407,421
+JD           35.4000     35.4000   0.0000       405,825
+ISBC         11.9000         n/a           (HTTPError: delisted or renamed since 2019)
+AMAT         60.9300     60.9300   0.0000       403,334
+ENDP          4.3200         n/a           (HTTPError: delisted or renamed since 2019)
+FANG         91.0700     91.0700   0.0000       377,736
+ETFC         45.3800         n/a           (HTTPError: delisted or renamed since 2019)
+FTR           0.9687         n/a           (HTTPError: delisted or renamed since 2019)
+OPK           1.4600      1.4600   0.0000       345,337
+NVDA        232.3200    232.3200   0.0000       343,971
+KHC          31.7100     31.7100   0.0000       341,898
+LYFT         43.5000     43.5000   0.0000       341,319
+ATVI         58.8800         n/a           (HTTPError: delisted or renamed since 2019)
+TXN         127.6600    127.6600   0.0000       331,864
+FITB         30.5500     30.5500   0.0000       322,125
+IRDM         25.0300     25.0300   0.0000       319,815
+NBL          24.3800         n/a           (HTTPError: delisted or renamed since 2019)
+OAS           3.0800         n/a           (HTTPError: delisted or renamed since 2019)
+MYGN         26.5200     26.5200   0.0000       295,112
+ODP           2.6500         n/a           (KeyError: delisted or renamed since 2019)
+CSX          72.3400     72.3400   0.0000       294,196
+SFM          19.5350     19.5400  -0.0050       287,599
+MYL          19.4300         n/a           (HTTPError: delisted or renamed since 2019)
+SPPI          3.5800         n/a           (HTTPError: delisted or renamed since 2019)
+XRAY         56.4000     56.4000   0.0000       266,681
+FISV        115.4700    115.4700   0.0000       265,324
+DGII         18.0600     18.0600   0.0000       257,942
+QRTEA         8.3900         n/a           (HTTPError: delisted or renamed since 2019)
+NFLX        323.3100    323.3100   0.0000       252,685
+QQQ         212.2100    212.2100   0.0000       252,200
+HOLI         16.4800         n/a           (HTTPError: delisted or renamed since 2019)
+SBAC        238.4900    238.4900   0.0000       243,802
+CYTK         10.2600     10.2600   0.0000       238,580
+MIK           7.4800         n/a           (HTTPError: delisted or renamed since 2019)
+AMGN        240.2700    240.2700   0.0000       234,005
+AAL          28.3000     28.3000   0.0000       231,079
+MNST         63.3600     63.3600   0.0000       230,997
+ALKS         20.1300     20.1300   0.0000       230,599
+CNDT          6.0300      6.0300   0.0000       226,152
+NWL          19.1200     19.1200   0.0000       225,657
+CARA         16.4100         n/a           (HTTPError: delisted or renamed since 2019)
+GPOR          2.9500         n/a           (no bar for that day: delisted or renamed since 2019)
+XEL          63.2900     63.2900   0.0000       219,018
+EA          106.9300         n/a           (no bar for that day: delisted or renamed since 2019)
+CTSH         61.6500     61.6500   0.0000       214,902
+GLNG         13.6800     13.6800   0.0000       214,589
+ADP         169.5900    169.5900   0.0000       209,999
+REGI         26.7550         n/a           (HTTPError: delisted or renamed since 2019)
+IMMU         21.3000         n/a           (HTTPError: delisted or renamed since 2019)
+
+agree to the source's precision: 52 of 52 symbols with an official close available
+no official close available (delisted/renamed): 27; ticker reused, skipped: 1
+mismatches: none
